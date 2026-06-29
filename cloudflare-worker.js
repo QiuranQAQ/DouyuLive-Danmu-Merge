@@ -865,6 +865,56 @@ const html = `<!DOCTYPE html>
           </div>
         </div>
 
+        <div class="divider" style="margin: 8px 0;"></div>
+        <label class="form-label" style="margin-bottom: 4px; display: block;">高级过滤规则</label>
+        
+        <!-- Option: Block Keywords -->
+        <div class="form-group" style="margin-top: 2px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="option-title" style="font-size: 13px;">屏蔽关键字 (逗号/换行分隔)</span>
+          </div>
+          <textarea id="opt-block-keywords" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: 剧透, 广告, 刷屏"></textarea>
+        </div>
+
+        <!-- Option: Block Regex -->
+        <div class="form-group" style="margin-top: 2px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="option-title" style="font-size: 13px;">屏蔽正则规则 (每行一条)</span>
+          </div>
+          <textarea id="opt-block-regex" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: ^\d+$ (过滤纯数字)"></textarea>
+        </div>
+
+        <!-- Option: Block Users/UIDs -->
+        <div class="form-group" style="margin-top: 2px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="option-title" style="font-size: 13px;">屏蔽用户昵称/UID (逗号/换行分隔)</span>
+          </div>
+          <textarea id="opt-block-users" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: 黑粉昵称, 1234567"></textarea>
+        </div>
+
+        <!-- Option: Min User Level -->
+        <div class="form-group" style="margin-top: 2px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="option-title" style="font-size: 13px;">最低显示用户等级</span>
+            <span id="min-level-val" class="range-value">1级</span>
+          </div>
+          <div class="range-group">
+            <input type="range" id="opt-min-level" class="range-input" min="1" max="120" value="1">
+          </div>
+        </div>
+
+        <!-- Option: Block No Badge -->
+        <div class="option-item">
+          <div class="option-info">
+            <span class="option-title">屏蔽无粉丝牌发言</span>
+            <span class="option-desc">仅显示带当前直播间粉丝牌的发言</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="opt-block-nobadge">
+            <span class="slider"></span>
+          </label>
+        </div>
+
       </div>
 
       <div class="divider"></div>
@@ -942,6 +992,7 @@ const html = `<!DOCTYPE html>
   </div>
 
   <script>
+    console.log("Douyu Danmaku Assistant Script Booting...");
     // Config & Globals
     let socket = null;
     let keepAliveTimer = null;
@@ -1005,157 +1056,279 @@ const html = `<!DOCTYPE html>
     const optMaxLines = document.getElementById("opt-max-lines");
     const maxLinesVal = document.getElementById("max-lines-val");
 
+    // New Filter selectors
+    const optBlockKeywords = document.getElementById("opt-block-keywords");
+    const optBlockRegex = document.getElementById("opt-block-regex");
+    const optBlockUsers = document.getElementById("opt-block-users");
+    const optMinLevel = document.getElementById("opt-min-level");
+    const minLevelVal = document.getElementById("min-level-val");
+    const optBlockNobadge = document.getElementById("opt-block-nobadge");
+
     // Initialize Settings UI values
-    optWindow.addEventListener("input", () => {
-      mergeWindowVal.textContent = optWindow.value + "秒";
-    });
-    optFontSize.addEventListener("input", () => {
-      fontSizeVal.textContent = optFontSize.value + "px";
-      chatLog.style.fontSize = optFontSize.value + "px";
-      pinnedContainer.style.fontSize = optFontSize.value + "px";
-      giftLog.style.fontSize = optFontSize.value + "px";
-      entryLog.style.fontSize = optFontSize.value + "px";
-    });
+    if (optWindow) {
+      optWindow.addEventListener("input", () => {
+        if (mergeWindowVal) mergeWindowVal.textContent = optWindow.value + "秒";
+      });
+    }
+    if (optFontSize) {
+      optFontSize.addEventListener("input", () => {
+        if (fontSizeVal) fontSizeVal.textContent = optFontSize.value + "px";
+        if (chatLog) chatLog.style.fontSize = optFontSize.value + "px";
+        if (pinnedContainer) pinnedContainer.style.fontSize = optFontSize.value + "px";
+        if (giftLog) giftLog.style.fontSize = optFontSize.value + "px";
+        if (entryLog) entryLog.style.fontSize = optFontSize.value + "px";
+      });
+    }
     function trimLogs() {
+      if (!optMaxLines) return;
       const maxLines = parseInt(optMaxLines.value);
       
       // Trim chatLog
-      while (chatLog.childElementCount > maxLines) {
-        const oldest = chatLog.firstElementChild;
-        if (oldest) {
-          const oldestKey = oldest.dataset.key;
-          if (oldestKey) {
-            const mapped = activeDanmakus.get(oldestKey);
-            if (mapped && mapped.element === oldest) {
-              activeDanmakus.delete(oldestKey);
+      if (chatLog) {
+        while (chatLog.childElementCount > maxLines) {
+          const oldest = chatLog.firstElementChild;
+          if (oldest) {
+            const oldestKey = oldest.dataset.key;
+            if (oldestKey) {
+              const mapped = activeDanmakus.get(oldestKey);
+              if (mapped && mapped.element === oldest) {
+                activeDanmakus.delete(oldestKey);
+              }
             }
+            oldest.remove();
+          } else {
+            break;
           }
-          oldest.remove();
-        } else {
-          break;
         }
       }
 
       // Trim giftLog
-      while (giftLog.childElementCount > maxLines) {
-        const oldest = giftLog.firstElementChild;
-        if (oldest) {
-          const oldestKey = oldest.dataset.key;
-          if (oldestKey) {
-            const mapped = activeGifts.get(oldestKey);
-            if (mapped && mapped.element === oldest) {
-              activeGifts.delete(oldestKey);
+      if (giftLog) {
+        while (giftLog.childElementCount > maxLines) {
+          const oldest = giftLog.firstElementChild;
+          if (oldest) {
+            const oldestKey = oldest.dataset.key;
+            if (oldestKey) {
+              const mapped = activeGifts.get(oldestKey);
+              if (mapped && mapped.element === oldest) {
+                activeGifts.delete(oldestKey);
+              }
             }
+            oldest.remove();
+          } else {
+            break;
           }
-          oldest.remove();
-        } else {
-          break;
         }
       }
 
       // Trim entryLog
-      while (entryLog.childElementCount > maxLines) {
-        const oldest = entryLog.firstElementChild;
-        if (oldest) {
-          oldest.remove();
-        } else {
-          break;
+      if (entryLog) {
+        while (entryLog.childElementCount > maxLines) {
+          const oldest = entryLog.firstElementChild;
+          if (oldest) {
+            oldest.remove();
+          } else {
+            break;
+          }
         }
       }
     }
 
-    optMaxLines.addEventListener("input", () => {
-      maxLinesVal.textContent = optMaxLines.value + "行";
-      trimLogs();
-    });
-    optOpacity.addEventListener("input", () => {
-      opacityVal.textContent = optOpacity.value + "%";
-      updateOpacity();
-    });
-    optTts.addEventListener("change", () => {
-      if (!optTts.checked) {
-        window.speechSynthesis.cancel();
-        ttsQueue = [];
-        ttsSpeaking = false;
-      }
-    });
+    if (optMaxLines) {
+      optMaxLines.addEventListener("input", () => {
+        if (maxLinesVal) maxLinesVal.textContent = optMaxLines.value + "行";
+        trimLogs();
+      });
+    }
+    if (optMinLevel) {
+      optMinLevel.addEventListener("input", () => {
+        if (minLevelVal) minLevelVal.textContent = optMinLevel.value + "级";
+      });
+    }
+    if (optOpacity) {
+      optOpacity.addEventListener("input", () => {
+        if (opacityVal) opacityVal.textContent = optOpacity.value + "%";
+        updateOpacity();
+      });
+    }
+    if (optTts) {
+      optTts.addEventListener("change", () => {
+        if (!optTts.checked) {
+          window.speechSynthesis.cancel();
+          ttsQueue = [];
+          ttsSpeaking = false;
+        }
+      });
+    }
 
     // Auto-scroll handler & scroll lock detection for Chat Log
-    let lastScrollTop = chatLog.scrollTop;
-    chatLog.addEventListener("scroll", () => {
-      const currentScrollTop = chatLog.scrollTop;
-      const threshold = 50;
-      const isAtBottom = chatLog.scrollHeight - currentScrollTop - chatLog.clientHeight <= threshold;
-      
-      if (isAtBottom) {
-        autoScroll = true;
-        scrollLockAlert.classList.remove("active");
-      } else {
-        // Only disable autoScroll if the user is scrolling UP
-        if (currentScrollTop < lastScrollTop) {
+    let lastScrollTop = chatLog ? chatLog.scrollTop : 0;
+    if (chatLog) {
+      chatLog.addEventListener("scroll", () => {
+        const currentScrollTop = chatLog.scrollTop;
+        const threshold = 50;
+        const isAtBottom = chatLog.scrollHeight - currentScrollTop - chatLog.clientHeight <= threshold;
+        
+        if (isAtBottom) {
+          autoScroll = true;
+          if (scrollLockAlert) scrollLockAlert.classList.remove("active");
+        } else {
+          // Only disable autoScroll if the user is scrolling UP
+          if (currentScrollTop < lastScrollTop) {
+            autoScroll = false;
+          }
+        }
+        lastScrollTop = currentScrollTop;
+      });
+    }
+
+    if (scrollLockAlert) {
+      scrollLockAlert.addEventListener("click", () => {
+        scrollToBottom(true);
+      });
+    }
+
+    if (scrollToggleBtn) {
+      scrollToggleBtn.addEventListener("click", () => {
+        if (autoScroll) {
           autoScroll = false;
+          scrollToggleBtn.textContent = "恢复滚动";
+          scrollToggleBtn.style.background = "rgba(99, 102, 241, 0.15)";
+          scrollToggleBtn.style.color = "var(--accent)";
+        } else {
+          scrollToBottom(true);
+          scrollToggleBtn.textContent = "暂停滚动";
+          scrollToggleBtn.style.background = "rgba(255,255,255,0.06)";
+          scrollToggleBtn.style.color = "var(--text-muted)";
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        if (chatLog) chatLog.innerHTML = "";
+        if (pinnedContainer) pinnedContainer.innerHTML = "";
+        if (giftLog) giftLog.innerHTML = "";
+        if (entryLog) entryLog.innerHTML = "";
+        activeDanmakus.clear();
+        activeGifts.clear();
+        addSystemLog("屏幕已清空。");
+      });
+    }
+
+    // Save & Load settings logic
+    function saveSettings() {
+      const settings = {
+        showChat: optShowChat ? optShowChat.checked : true,
+        showGifts: optShowGifts ? optShowGifts.checked : true,
+        showEntry: optShowEntry ? optShowEntry.checked : true,
+        merge: optMerge ? optMerge.checked : true,
+        window: optWindow ? optWindow.value : "10",
+        filterRobot: optFilterRobot ? optFilterRobot.checked : true,
+        tts: optTts ? optTts.checked : false,
+        opacity: optOpacity ? optOpacity.value : "100",
+        fontSize: optFontSize ? optFontSize.value : "14",
+        maxLines: optMaxLines ? optMaxLines.value : "300",
+        blockKeywords: optBlockKeywords ? optBlockKeywords.value : "",
+        blockRegex: optBlockRegex ? optBlockRegex.value : "",
+        blockUsers: optBlockUsers ? optBlockUsers.value : "",
+        minLevel: optMinLevel ? optMinLevel.value : "1",
+        blockNobadge: optBlockNobadge ? optBlockNobadge.checked : false
+      };
+      localStorage.setItem("DouyuAssistant_Settings", JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem("DouyuAssistant_Settings");
+      if (!saved) return;
+      try {
+        const settings = JSON.parse(saved);
+        if (settings.showChat !== undefined && optShowChat) optShowChat.checked = settings.showChat;
+        if (settings.showGifts !== undefined && optShowGifts) optShowGifts.checked = settings.showGifts;
+        if (settings.showEntry !== undefined && optShowEntry) optShowEntry.checked = settings.showEntry;
+        if (settings.merge !== undefined && optMerge) optMerge.checked = settings.merge;
+        if (settings.window !== undefined && optWindow) {
+          optWindow.value = settings.window;
+          if (mergeWindowVal) mergeWindowVal.textContent = settings.window + "秒";
+        }
+        if (settings.filterRobot !== undefined && optFilterRobot) optFilterRobot.checked = settings.filterRobot;
+        if (settings.tts !== undefined && optTts) optTts.checked = settings.tts;
+        if (settings.opacity !== undefined && optOpacity) {
+          optOpacity.value = settings.opacity;
+          if (opacityVal) opacityVal.textContent = settings.opacity + "%";
+        }
+        if (settings.fontSize !== undefined && optFontSize) {
+          optFontSize.value = settings.fontSize;
+          if (fontSizeVal) fontSizeVal.textContent = settings.fontSize + "px";
+        }
+        if (settings.maxLines !== undefined && optMaxLines) {
+          optMaxLines.value = settings.maxLines;
+          if (maxLinesVal) maxLinesVal.textContent = settings.maxLines + "行";
+        }
+        if (settings.blockKeywords !== undefined && optBlockKeywords) optBlockKeywords.value = settings.blockKeywords;
+        if (settings.blockRegex !== undefined && optBlockRegex) optBlockRegex.value = settings.blockRegex;
+        if (settings.blockUsers !== undefined && optBlockUsers) optBlockUsers.value = settings.blockUsers;
+        if (settings.minLevel !== undefined && optMinLevel) {
+          optMinLevel.value = settings.minLevel;
+          if (minLevelVal) minLevelVal.textContent = settings.minLevel + "级";
+        }
+        if (settings.blockNobadge !== undefined && optBlockNobadge) optBlockNobadge.checked = settings.blockNobadge;
+      } catch (e) {
+        console.error("Failed to load settings:", e);
+      }
+    }
+
+    // Auto-save listeners for all inputs
+    const allInputsToSave = [
+      optShowChat, optShowGifts, optShowEntry, optMerge, optWindow,
+      optFilterRobot, optTts, optOpacity, optFontSize, optMaxLines,
+      optBlockKeywords, optBlockRegex, optBlockUsers, optMinLevel, optBlockNobadge
+    ];
+    allInputsToSave.forEach(input => {
+      if (input) {
+        input.addEventListener("change", saveSettings);
+        if (input.type === "range" || input.tagName === "TEXTAREA") {
+          input.addEventListener("input", saveSettings);
         }
       }
-      lastScrollTop = currentScrollTop;
-    });
-
-    scrollLockAlert.addEventListener("click", () => {
-      scrollToBottom(true);
-    });
-
-    scrollToggleBtn.addEventListener("click", () => {
-      if (autoScroll) {
-        autoScroll = false;
-        scrollToggleBtn.textContent = "恢复滚动";
-        scrollToggleBtn.style.background = "rgba(99, 102, 241, 0.15)";
-        scrollToggleBtn.style.color = "var(--accent)";
-      } else {
-        scrollToBottom(true);
-        scrollToggleBtn.textContent = "暂停滚动";
-        scrollToggleBtn.style.background = "rgba(255,255,255,0.06)";
-        scrollToggleBtn.style.color = "var(--text-muted)";
-      }
-    });
-
-    clearBtn.addEventListener("click", () => {
-      chatLog.innerHTML = "";
-      pinnedContainer.innerHTML = "";
-      giftLog.innerHTML = "";
-      entryLog.innerHTML = "";
-      activeDanmakus.clear();
-      activeGifts.clear();
-      addSystemLog("屏幕已清空。");
     });
 
     // Parse URL room parameters & Initialize
     window.addEventListener("DOMContentLoaded", () => {
-      chatLog.style.fontSize = optFontSize.value + "px";
-      pinnedContainer.style.fontSize = optFontSize.value + "px";
-      giftLog.style.fontSize = optFontSize.value + "px";
-      entryLog.style.fontSize = optFontSize.value + "px";
+      loadSettings();
+      if (chatLog && optFontSize) chatLog.style.fontSize = optFontSize.value + "px";
+      if (pinnedContainer && optFontSize) pinnedContainer.style.fontSize = optFontSize.value + "px";
+      if (giftLog && optFontSize) giftLog.style.fontSize = optFontSize.value + "px";
+      if (entryLog && optFontSize) entryLog.style.fontSize = optFontSize.value + "px";
       updateOpacity();
       fetchGiftConfig();
 
       const urlParams = new URLSearchParams(window.location.search);
       const rid = urlParams.get("room") || window.location.pathname.split("/").pop();
       if (rid && /^[0-9]+$/.test(rid)) {
-        roomIdInput.value = rid;
+        if (roomIdInput) roomIdInput.value = rid;
         connectToRoom(rid);
       }
     });
 
-    connectBtn.addEventListener("click", () => {
-      const rid = roomIdInput.value.trim();
-      if (!rid) {
-        alert("请输入有效的直播房间号！");
-        return;
-      }
-      if (socket) {
-        disconnect();
-      } else {
-        connectToRoom(rid);
-      }
-    });
+    if (connectBtn) {
+      connectBtn.addEventListener("click", () => {
+        console.log("Connect button clicked!");
+        const rid = roomIdInput ? roomIdInput.value.trim() : "";
+        console.log("Room ID entered:", rid);
+        if (!rid) {
+          alert("请输入有效的直播房间号！");
+          return;
+        }
+        if (socket) {
+          console.log("Disconnecting socket...");
+          disconnect();
+        } else {
+          console.log("Connecting to room:", rid);
+          connectToRoom(rid);
+        }
+      });
+    }
 
     // Douyu Packet Encoding
     function WebSocket_Packet(str) {
@@ -1281,7 +1454,7 @@ const html = `<!DOCTYPE html>
 
         socket.onclose = () => {
           updateStatus("disconnected", "连接断开");
-          roomInfo.textContent = "";
+          if (roomInfo) roomInfo.textContent = "";
           addSystemLog("连接已关闭。");
           cleanup();
         };
@@ -1296,8 +1469,20 @@ const html = `<!DOCTYPE html>
 
     function disconnect() {
       if (socket) {
-        socket.close();
+        socket.onclose = null;
+        socket.onerror = null;
+        socket.onmessage = null;
+        try {
+          socket.close();
+        } catch (e) {
+          // ignore
+        }
+        socket = null;
       }
+      updateStatus("disconnected", "连接断开");
+      if (roomInfo) roomInfo.textContent = "";
+      addSystemLog("连接已关闭。");
+      cleanup();
     }
 
     function cleanup() {
@@ -1630,6 +1815,18 @@ const html = `<!DOCTYPE html>
       const nickname = msg.nn || '未知';
       const level = msg.level || '0';
       
+      // User blacklist filter
+      if (optBlockUsers && optBlockUsers.value.trim()) {
+        const cleaned = optBlockUsers.value.replace(new RegExp(String.fromCharCode(10), 'g'), ',')
+                                           .replace(new RegExp(String.fromCharCode(13), 'g'), ',')
+                                           .replace(/，/g, ',');
+        const userList = cleaned.split(',').map(u => u.trim()).filter(Boolean);
+        const hasUser = userList.some(user => {
+          return nickname.toLowerCase() === user.toLowerCase() || (msg.uid && msg.uid.toString() === user);
+        });
+        if (hasUser) return;
+      }
+      
       const el = document.createElement('div');
       el.className = 'danmaku-item';
       
@@ -1715,6 +1912,71 @@ const html = `<!DOCTYPE html>
       // Filter robot danmaku
       if (optFilterRobot.checked && isRobot) {
         return;
+      }
+
+      // 1. 最低用户等级过滤
+      if (optMinLevel) {
+        const minLevel = parseInt(optMinLevel.value || "1");
+        const userLevel = parseInt(msg.level || "0");
+        if (userLevel < minLevel) {
+          return;
+        }
+      }
+
+      // 2. 屏蔽无粉丝牌弹幕
+      if (optBlockNobadge && optBlockNobadge.checked && !msg.bnn) {
+        return;
+      }
+
+      // 3. 关键字过滤
+      if (optBlockKeywords) {
+        const keywordsStr = optBlockKeywords.value.trim();
+        if (keywordsStr) {
+          const cleaned = keywordsStr.replace(new RegExp(String.fromCharCode(10), 'g'), ',')
+                                     .replace(new RegExp(String.fromCharCode(13), 'g'), ',')
+                                     .replace(/，/g, ',');
+          const kwList = cleaned.split(',').map(k => k.trim()).filter(Boolean);
+          const lowerText = text.toLowerCase();
+          const hasKeyword = kwList.some(kw => lowerText.includes(kw.toLowerCase()));
+          if (hasKeyword) {
+            return;
+          }
+        }
+      }
+
+      // 4. 正则表达式过滤
+      if (optBlockRegex) {
+        const regexStr = optBlockRegex.value.trim();
+        if (regexStr) {
+          const regexLines = regexStr.split(String.fromCharCode(10)).map(r => r.trim()).filter(Boolean);
+          for (const line of regexLines) {
+            try {
+              const rx = new RegExp(line);
+              if (rx.test(text)) {
+                return;
+              }
+            } catch (e) {
+              // 忽略非法正则规则
+            }
+          }
+        }
+      }
+
+      // 5. 屏蔽用户昵称/UID过滤
+      if (optBlockUsers) {
+        const usersStr = optBlockUsers.value.trim();
+        if (usersStr) {
+          const cleaned = usersStr.replace(new RegExp(String.fromCharCode(10), 'g'), ',')
+                                  .replace(new RegExp(String.fromCharCode(13), 'g'), ',')
+                                  .replace(/，/g, ',');
+          const userList = cleaned.split(',').map(u => u.trim()).filter(Boolean);
+          const hasUser = userList.some(user => {
+            return nickname.toLowerCase() === user.toLowerCase() || (msg.uid && msg.uid.toString() === user);
+          });
+          if (hasUser) {
+            return;
+          }
+        }
       }
 
       const now = Date.now();
@@ -1944,35 +2206,12 @@ const html = `<!DOCTYPE html>
       const now = Date.now();
       const timeWindow = parseInt(optWindow.value);
       for (const [key, item] of activeDanmakus.entries()) {
-        // If pinned, check if pin expired (8 seconds since last merge)
-        if (item.pinned) {
-          const pinDuration = 8 * 1000;
-          if (now - item.pinTimestamp > pinDuration) {
-            item.pinned = false;
-            if (item.element && pinnedContainer.contains(item.element)) {
+        if (now - item.timestamp > timeWindow * 1000) {
+          if (item.pinned) {
+            if (item.element) {
               item.element.remove();
-              chatLog.appendChild(item.element);
-              // Make sure to trim main chatLog to not exceed limits
-              const maxLines = parseInt(optMaxLines.value);
-              while (chatLog.childElementCount > maxLines) {
-                const oldest = chatLog.firstElementChild;
-                const oldestKey = oldest.dataset.key;
-                if (oldestKey) {
-                  const mapped = activeDanmakus.get(oldestKey);
-                  if (mapped && mapped.element === oldest) {
-                    activeDanmakus.delete(oldestKey);
-                  }
-                }
-                oldest.remove();
-              }
-              if (autoScroll) {
-                chatLog.scrollTop = chatLog.scrollHeight;
-              }
             }
           }
-        }
-
-        if (now - item.timestamp > timeWindow * 1000) {
           activeDanmakus.delete(key);
         }
       }
