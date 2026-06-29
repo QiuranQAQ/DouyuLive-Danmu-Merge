@@ -1,5 +1,36 @@
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith("/api/room-info")) {
+      const room = url.searchParams.get("room");
+      if (!room || !/^\d+$/.test(room)) {
+        return new Response(JSON.stringify({ error: 1, msg: "Invalid room" }), {
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      }
+      try {
+        const targetUrl = `http://open.douyucdn.cn/api/RoomApi/room/${room}`;
+        const res = await fetch(targetUrl);
+        const data = await res.json();
+        return new Response(JSON.stringify(data), {
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: 2, msg: e.message }), {
+          headers: {
+            "content-type": "application/json;charset=UTF-8",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      }
+    }
+
     return new Response(html, {
       headers: {
         "content-type": "text/html;charset=UTF-8",
@@ -135,7 +166,7 @@ const html = `<!DOCTYPE html>
       font-family: var(--font-outfit);
       font-weight: 700;
       font-size: 20px;
-      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      background: linear-gradient(to right, #818cf8, #6366f1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -458,7 +489,7 @@ const html = `<!DOCTYPE html>
     /* Danmaku Item Style */
     .danmaku-item {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       flex-wrap: wrap;
       gap: 6px;
       line-height: 22px;
@@ -526,7 +557,7 @@ const html = `<!DOCTYPE html>
 
     .dm-username {
       font-weight: 600;
-      color: #cbd5e1;
+      color: #ffb938ff;
       cursor: pointer;
     }
 
@@ -603,7 +634,7 @@ const html = `<!DOCTYPE html>
       display: inline-block;
     }
 
-    /* Merged Danmaku Click-to-Expand Sublist */
+    /* Merged Danmaku Styling */
     .danmaku-item.has-merged {
       cursor: pointer;
       position: relative;
@@ -612,23 +643,6 @@ const html = `<!DOCTYPE html>
 
     .danmaku-item.has-merged:hover {
       background-color: rgba(255, 255, 255, 0.05);
-    }
-
-    .danmaku-sublist {
-      width: 100%;
-      margin-top: 8px;
-      padding-left: 16px;
-      border-left: 2px solid var(--accent);
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.9em;
-      color: var(--text-muted);
-      cursor: default;
-    }
-
-    .danmaku-sublist.active {
-      display: flex;
     }
 
     .sub-item {
@@ -663,6 +677,7 @@ const html = `<!DOCTYPE html>
       background: rgba(99, 102, 241, 0.25) !important;
       color: #818cf8 !important;
       border: none !important;
+      box-shadow: 0 0 4px rgba(99, 102, 241, 0.2);
     }
     .badge-tier-3 {
       background: linear-gradient(135deg, #f97316 0%, #ef4444 100%) !important;
@@ -678,8 +693,6 @@ const html = `<!DOCTYPE html>
       border-left: 3px solid #ef4444 !important;
     }
 
-
-
     .pinned-container {
       display: flex;
       flex-direction: column;
@@ -691,6 +704,12 @@ const html = `<!DOCTYPE html>
     }
     .pinned-container:empty {
       display: none;
+    }
+
+    .gift-highlight {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%) !important;
+      border-left: 3px solid #f59e0b !important;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
     }
 
     /* Footer / Bottom Info */
@@ -712,6 +731,229 @@ const html = `<!DOCTYPE html>
     .footer-bar a:hover {
       color: var(--accent-hover);
     }
+
+    /* Light Theme Styling Override */
+    body.theme-light {
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --panel-bg: rgba(255, 255, 255, 0.75);
+      --panel-border: rgba(15, 23, 42, 0.08);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+    }
+
+    body.theme-light .bg-blob.blob-1 {
+      background: #c7d2fe;
+    }
+
+    body.theme-light .bg-blob.blob-2 {
+      background: #c5f2f7;
+    }
+
+    body.theme-light .input-field {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+    }
+
+    body.theme-light .input-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    }
+
+    body.theme-light .dm-username {
+      color: #00a2ffff;       
+    }
+
+    body.theme-light .dm-username:hover {
+      color: #0f172a;
+    }
+
+    body.theme-light .dm-content {
+      color: #1e293b;
+    }
+
+    body.theme-light .chat-header {
+      background: rgba(15, 23, 42, 0.03);
+    }
+
+    body.theme-light .badge-tier-1 {
+      background: rgba(100, 116, 139, 0.1) !important;
+      color: #475569 !important;
+    }
+
+    body.theme-light .badge-tier-2 {
+      background: rgba(79, 70, 229, 0.1) !important;
+      color: #4f46e5 !important;
+    }
+
+    body.theme-light .row-high-heat {
+      background-color: rgba(239, 68, 68, 0.05) !important;
+    }
+
+    body.theme-light .gift-highlight {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%) !important;
+    }
+
+    body.theme-light .chat-log::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    body.theme-light .chat-log::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    body.theme-light .chat-log::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    /* Header Dropdowns */
+    .header-dropdown {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      width: 290px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-height: calc(100% - 80px);
+      overflow: hidden;
+    }
+    
+    @keyframes dropdownFadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--panel-border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dropdown-body {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Header Buttons */
+    .header-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    body.theme-light .header-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Foreground Combo Details Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--panel-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      width: 800px;
+      max-width: 90%;
+      max-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      transform: translateY(20px);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      font-family: var(--font-outfit);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 85%;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -725,7 +967,7 @@ const html = `<!DOCTYPE html>
     <div class="sidebar">
       <div class="brand">
         <div class="brand-logo">Dm</div>
-        <div class="brand-title">斗鱼弹幕助手 by超限</div>
+        <div class="brand-title">斗鱼弹幕助手1.0 by超限</div>
       </div>
 
       <div class="divider"></div>
@@ -745,201 +987,47 @@ const html = `<!DOCTYPE html>
 
       <div class="divider"></div>
 
-      <!-- Settings Panel -->
-      <div class="form-group" style="gap: 16px; overflow-y: auto; max-height: calc(100vh - 280px); padding-right: 4px;">
-        <label class="form-label">功能选项</label>
-        
-        <!-- Option: Show Chat -->
+      <!-- Theme Switch Option -->
+      <div class="form-group">
+        <label class="form-label">系统设置</label>
         <div class="option-item">
           <div class="option-info">
-            <span class="option-title">显示普通弹幕</span>
-            <span class="option-desc">显示观众的聊天消息</span>
+            <span class="option-title">白天模式</span>
+            <span class="option-desc">切换浅色/深色主题</span>
           </div>
           <label class="switch">
-            <input type="checkbox" id="opt-show-chat" checked>
+            <input type="checkbox" id="opt-theme-light">
             <span class="slider"></span>
           </label>
         </div>
-
-        <!-- Option: Show Gifts -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">显示礼物消息</span>
-            <span class="option-desc">显示送礼、开通钻粉等动态</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-show-gifts" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- Option: Show Entries -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">显示入场消息</span>
-            <span class="option-desc">显示观众进入直播间的提醒</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-show-entry" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- Option: Merge Duplicates -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">合并重复弹幕</span>
-            <span class="option-desc">激进合并相同字符不同字数弹幕</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-merge" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- Option: Time Window -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">合并时间窗口</span>
-            <span id="merge-window-val" class="range-value">10秒</span>
-          </div>
-          <div class="range-group">
-            <input type="range" id="opt-window" class="range-input" min="1" max="60" value="10">
-          </div>
-        </div>
-
-        <!-- Option: Filter Robot -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">过滤机器人弹幕</span>
-            <span class="option-desc">仅保留带用户标识的真实消息</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-filter-robot" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- Option: TTS -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">弹幕语音朗读 (TTS)</span>
-            <span class="option-desc">自动朗读接收到的聊天和礼物</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-tts">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- Option: Background Opacity -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">背景不透明度</span>
-            <span id="opacity-val" class="range-value">100%</span>
-          </div>
-          <div class="range-group">
-            <input type="range" id="opt-opacity" class="range-input" min="0" max="100" value="100">
-          </div>
-        </div>
-
-        <!-- Option: Font Size -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">弹幕字号</span>
-            <span id="font-size-val" class="range-value">14px</span>
-          </div>
-          <div class="range-group">
-            <input type="range" id="opt-font-size" class="range-input" min="12" max="24" value="14">
-          </div>
-        </div>
-
-        <!-- Option: Max Lines -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">最大保留行数</span>
-            <span id="max-lines-val" class="range-value">300行</span>
-          </div>
-          <div class="range-group">
-            <input type="range" id="opt-max-lines" class="range-input" min="50" max="1000" step="50" value="300">
-          </div>
-        </div>
-
-        <div class="divider" style="margin: 8px 0;"></div>
-        <label class="form-label" style="margin-bottom: 4px; display: block;">高级过滤规则</label>
-        
-        <!-- Option: Block Keywords -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">屏蔽关键字 (逗号/换行分隔)</span>
-          </div>
-          <textarea id="opt-block-keywords" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: 剧透, 广告, 刷屏"></textarea>
-        </div>
-
-        <!-- Option: Block Regex -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">屏蔽正则规则 (每行一条)</span>
-          </div>
-          <textarea id="opt-block-regex" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: ^\d+$ (过滤纯数字)"></textarea>
-        </div>
-
-        <!-- Option: Block Users/UIDs -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">屏蔽用户昵称/UID (逗号/换行分隔)</span>
-          </div>
-          <textarea id="opt-block-users" class="input-field" rows="2" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter);" placeholder="例如: 黑粉昵称, 1234567"></textarea>
-        </div>
-
-        <!-- Option: Min User Level -->
-        <div class="form-group" style="margin-top: 2px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="option-title" style="font-size: 13px;">最低显示用户等级</span>
-            <span id="min-level-val" class="range-value">1级</span>
-          </div>
-          <div class="range-group">
-            <input type="range" id="opt-min-level" class="range-input" min="1" max="120" value="1">
-          </div>
-        </div>
-
-        <!-- Option: Block No Badge -->
-        <div class="option-item">
-          <div class="option-info">
-            <span class="option-title">屏蔽无粉丝牌发言</span>
-            <span class="option-desc">仅显示带当前直播间粉丝牌的发言</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="opt-block-nobadge">
-            <span class="slider"></span>
-          </label>
-        </div>
-
       </div>
-
-      <div class="divider"></div>
 
       <!-- Quick Actions -->
       <div style="display: flex; gap: 10px; margin-top: auto;">
-        <button id="clear-btn" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); padding: 10px 0;">
+        <button id="clear-btn" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); padding: 10px 0; flex: 1;">
           清空屏幕
         </button>
-        <button id="scroll-toggle-btn" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); padding: 10px 0; flex: 1;">
-          暂停滚动
-        </button>
       </div>
-
     </div>
 
     <!-- Chat Column (flex: 2.5) -->
     <div class="chat-section column-panel">
-      <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between;">
-        <span class="panel-column-title">弹幕消息</span>
-        <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="panel-column-title">弹幕消息</span>
+          <button id="danmu-settings-btn" class="header-btn" title="弹幕设置">
+            <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.34 14.86,5.08L14.47,2.42C14.43,2.18 14.22,2 13.97,2H9.97C9.72,2 9.51,2.18 9.47,2.42L9.08,5.08C8.47,5.34 7.9,5.66 7.38,6.05L4.89,5.05C4.67,4.96 4.4,5.05 4.28,5.27L2.28,8.73C2.16,8.95 2.21,9.22 2.4,9.37L4.51,11C4.47,11.34 4.45,11.67 4.45,12C4.45,12.33 4.47,12.65 4.51,12.97L2.4,14.63C2.21,14.78 2.16,15.05 2.28,15.27L4.28,18.73C4.4,18.95 4.67,19.04 4.89,18.95L7.38,17.95C7.9,18.34 8.47,18.66 9.08,18.92L9.47,21.58C9.51,21.82 9.72,22 9.97,22H13.97C14.22,22 14.43,21.82 14.47,21.58L14.86,18.92C15.47,18.66 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg>
+          </button>
+          <button id="danmu-filter-btn" class="header-btn" title="过滤设置">
+            <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M14.76,20.83L17.6,18L14.76,15.17L16.17,13.76L19,16.59L21.83,13.76L23.24,15.17L20.41,18L23.24,20.83L21.83,22.24L19,19.41L16.17,22.24L14.76,20.83M12,12C12,13.25 11.5,14.39 10.69,15.24L10.66,15.26L10.64,15.28C9.53,16.5 8.16,17.63 6.64,18.57C6.26,18.8 5.79,18.69 5.56,18.31C5.33,17.93 5.44,17.46 5.82,17.23C7.16,16.4 8.37,15.4 9.35,14.32C8.5,13.67 8,12.89 8,12C8,10.25 9.75,9 12,9C12.57,9 13.11,9.08 13.6,9.25C13.06,9.9 12.63,10.65 12.35,11.47C12.13,11.64 12,11.81 12,12M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22C12.39,22 12.78,21.96 13.16,21.89C13.06,21.28 13.06,20.66 13.16,20.05C12.78,20.08 12.39,20.1 12,20.1A8.1,8.1 0 0,1 4,12C4,7.53 7.58,3.9 12,3.9C16.42,3.9 20,7.53 20,12C20,12.39 19.97,12.78 19.9,13.16C20.5,13.06 21.13,13.06 21.74,13.16C21.9,12.78 22,12.39 22,12A10,10 0 0,0 12,2Z"/></svg>
+          </button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
           <div class="status-container">
             <div id="status-dot" class="status-dot"></div>
             <span id="status-text" class="status-text">未连接</span>
           </div>
+          <span id="noble-count" class="noble-count" style="display: none; text-align: center; font-size: 13px; font-weight: 600; color: #CCB88F; background: rgba(204, 184, 143, 0.1); border-radius: 4px; padding: 2px 6px; font-family: var(--font-outfit);"></span>
           <div class="room-info" id="room-info"></div>
         </div>
       </div>
@@ -959,14 +1047,142 @@ const html = `<!DOCTYPE html>
         </svg>
         <span>有新弹幕 (点击滚动到底部)</span>
       </div>
+
+      <!-- Danmaku Settings Dropdown Overlay -->
+      <div id="danmu-settings-dropdown" class="header-dropdown" style="display: none;">
+        <div class="dropdown-header">
+          <span>弹幕设置</span>
+        </div>
+        <div class="dropdown-body">
+          <div class="option-item">
+            <div class="option-info">
+              <span class="option-title">显示普通弹幕</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="opt-show-chat" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="option-item">
+            <div class="option-info">
+              <span class="option-title">合并重复弹幕</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="opt-merge" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">合并时间窗口</span>
+              <span id="merge-window-val" class="range-value">10秒</span>
+            </div>
+            <div class="range-group">
+              <input type="range" id="opt-window" class="range-input" min="1" max="60" value="10">
+            </div>
+          </div>
+          <div class="option-item">
+            <div class="option-info">
+              <span class="option-title">过滤机器人弹幕</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="opt-filter-robot" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="option-item">
+            <div class="option-info">
+              <span class="option-title">语音朗读 (TTS)</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="opt-tts">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">弹幕字号</span>
+              <span id="font-size-val" class="range-value">18px</span>
+            </div>
+            <div class="range-group">
+              <input type="range" id="opt-font-size" class="range-input" min="12" max="30" value="18">
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">最大保留行数</span>
+              <span id="max-lines-val" class="range-value">100行</span>
+            </div>
+            <div class="range-group">
+              <input type="range" id="opt-max-lines" class="range-input" min="50" max="1000" step="50" value="100">
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">弹幕置底连击阈值 (X)</span>
+              <input type="number" id="opt-pin-threshold" class="input-field" style="width: 70px; padding: 4px 8px; font-size: 12px; height: auto;" min="2" value="10">
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">置底连击最大显示数</span>
+              <input type="number" id="opt-pin-max-count" class="input-field" style="width: 70px; padding: 4px 8px; font-size: 12px; height: auto;" min="1" max="20" value="3">
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="option-title" style="font-size: 13px;">最低显示用户等级</span>
+              <span id="min-level-val" class="range-value">1级</span>
+            </div>
+            <div class="range-group">
+              <input type="range" id="opt-min-level" class="range-input" min="1" max="120" value="1">
+            </div>
+          </div>
+          <div class="option-item">
+            <div class="option-info">
+              <span class="option-title">屏蔽无粉丝牌发言</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="opt-block-nobadge">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danmaku Filter Dropdown Overlay -->
+      <div id="danmu-filter-dropdown" class="header-dropdown" style="display: none;">
+        <div class="dropdown-header">
+          <span>弹幕过滤</span>
+        </div>
+        <div class="dropdown-body">
+          <div class="form-group">
+            <span class="option-title" style="font-size: 13px;">屏蔽关键字 (逗号/换行分隔)</span>
+            <textarea id="opt-block-keywords" class="input-field" rows="3" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter); margin-top: 4px;" placeholder="例如: 剧透, 广告, 刷屏"></textarea>
+          </div>
+          <div class="form-group">
+            <span class="option-title" style="font-size: 13px;">屏蔽用户昵称/UID (逗号/换行分隔)</span>
+            <textarea id="opt-block-users" class="input-field" rows="3" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter); margin-top: 4px;" placeholder="例如: 黑粉昵称, 1234567"></textarea>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Right Column (flex: 1.2) -->
     <div class="right-section">
       <!-- Gift Column -->
       <div class="gift-section column-panel">
-        <div class="chat-header">
-          <span class="panel-column-title">礼物动态</span>
+        <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="panel-column-title">礼物动态</span>
+            <button id="gift-filter-btn" class="header-btn" title="过滤礼物">
+              <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24"><path d="M14.76,20.83L17.6,18L14.76,15.17L16.17,13.76L19,16.59L21.83,13.76L23.24,15.17L20.41,18L23.24,20.83L21.83,22.24L19,19.41L16.17,22.24L14.76,20.83M12,12C12,13.25 11.5,14.39 10.69,15.24L10.66,15.26L10.64,15.28C9.53,16.5 8.16,17.63 6.64,18.57C6.26,18.8 5.79,18.69 5.56,18.31C5.33,17.93 5.44,17.46 5.82,17.23C7.16,16.4 8.37,15.4 9.35,14.32C8.5,13.67 8,12.89 8,12C8,10.25 9.75,9 12,9C12.57,9 13.11,9.08 13.6,9.25C13.06,9.9 12.63,10.65 12.35,11.47C12.13,11.64 12,11.81 12,12M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22C12.39,22 12.78,21.96 13.16,21.89C13.06,21.28 13.06,20.66 13.16,20.05C12.78,20.08 12.39,20.1 12,20.1A8.1,8.1 0 0,1 4,12C4,7.53 7.58,3.9 12,3.9C16.42,3.9 20,7.53 20,12C20,12.39 19.97,12.78 19.9,13.16C20.5,13.06 21.13,13.06 21.74,13.16C21.9,12.78 22,12.39 22,12A10,10 0 0,0 12,2Z"/></svg>
+            </button>
+          </div>
+          <label class="switch" style="transform: scale(0.8); margin-right: -4px;">
+            <input type="checkbox" id="opt-show-gifts" checked>
+            <span class="slider"></span>
+          </label>
         </div>
         <div class="chat-log" id="gift-log">
           <div class="danmaku-item">
@@ -974,12 +1190,41 @@ const html = `<!DOCTYPE html>
             <span class="dm-content dm-system">等待礼物接收...</span>
           </div>
         </div>
+        <div class="scroll-lock-alert" id="gift-scroll-lock-alert">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
+            <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+          </svg>
+          <span>有新礼物 (点击滚动到底部)</span>
+        </div>
+
+        <!-- Gift Filter Dropdown Overlay -->
+        <div id="gift-filter-dropdown" class="header-dropdown" style="display: none;">
+          <div class="dropdown-header">
+            <span>礼物过滤</span>
+          </div>
+          <div class="dropdown-body">
+            <div class="form-group">
+              <span class="option-title" style="font-size: 13px;">屏蔽礼物名称 (逗号/换行分隔)</span>
+              <textarea id="opt-block-gifts" class="input-field" rows="3" style="resize: vertical; font-size: 12px; padding: 8px; font-family: var(--font-inter); margin-top: 4px;" placeholder="例如: 赞, 弱鸡, 辣眼睛"></textarea>
+            </div>
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="option-title" style="font-size: 13px;">高亮礼物价值阈值 (元)</span>
+                <input type="number" id="opt-gift-highlight" class="input-field" style="width: 70px; padding: 4px 8px; font-size: 12px; height: auto;" min="0" value="10">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Entry Column -->
       <div class="entry-section column-panel">
-        <div class="chat-header">
+        <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between;">
           <span class="panel-column-title">观众入场</span>
+          <label class="switch" style="transform: scale(0.8); margin-right: -4px;">
+            <input type="checkbox" id="opt-show-entry" checked>
+            <span class="slider"></span>
+          </label>
         </div>
         <div class="chat-log" id="entry-log">
           <div class="danmaku-item">
@@ -987,7 +1232,24 @@ const html = `<!DOCTYPE html>
             <span class="dm-content dm-system">等待入场消息...</span>
           </div>
         </div>
+        <div class="scroll-lock-alert" id="entry-scroll-lock-alert">
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
+            <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+          </svg>
+          <span>有新入场 (点击滚动到底部)</span>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Foreground Combo Details Modal -->
+  <div id="combo-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">连击详情</span>
+        <button id="close-combo-modal" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="combo-modal-body"></div>
     </div>
   </div>
 
@@ -998,6 +1260,8 @@ const html = `<!DOCTYPE html>
     let keepAliveTimer = null;
     let activeRoom = "";
     let autoScroll = true;
+    let giftAutoScroll = true;
+    let entryAutoScroll = true;
     let activeDanmakus = new Map(); // key: collapsedKey -> { element, countBadge, count, timestamp, details }
     let activeGifts = new Map();    // key: nickname_gfid -> { element, contentSpan, count, timestamp }
     const encoder = new TextEncoder();
@@ -1035,9 +1299,9 @@ const html = `<!DOCTYPE html>
     const entryLog = document.getElementById("entry-log");
     const statusDot = document.getElementById("status-dot");
     const statusText = document.getElementById("status-text");
+    const onlineCount = document.getElementById("online-count");
     const roomInfo = document.getElementById("room-info");
     const clearBtn = document.getElementById("clear-btn");
-    const scrollToggleBtn = document.getElementById("scroll-toggle-btn");
     const scrollLockAlert = document.getElementById("scroll-lock-alert");
 
     // Options
@@ -1049,20 +1313,24 @@ const html = `<!DOCTYPE html>
     const mergeWindowVal = document.getElementById("merge-window-val");
     const optFilterRobot = document.getElementById("opt-filter-robot");
     const optTts = document.getElementById("opt-tts");
-    const optOpacity = document.getElementById("opt-opacity");
-    const opacityVal = document.getElementById("opacity-val");
     const optFontSize = document.getElementById("opt-font-size");
     const fontSizeVal = document.getElementById("font-size-val");
     const optMaxLines = document.getElementById("opt-max-lines");
     const maxLinesVal = document.getElementById("max-lines-val");
+    const optThemeLight = document.getElementById("opt-theme-light");
+    const optPinMaxCount = document.getElementById("opt-pin-max-count");
 
     // New Filter selectors
     const optBlockKeywords = document.getElementById("opt-block-keywords");
-    const optBlockRegex = document.getElementById("opt-block-regex");
+    const optBlockGifts = document.getElementById("opt-block-gifts");
     const optBlockUsers = document.getElementById("opt-block-users");
     const optMinLevel = document.getElementById("opt-min-level");
     const minLevelVal = document.getElementById("min-level-val");
     const optBlockNobadge = document.getElementById("opt-block-nobadge");
+
+    // Custom thresholds
+    const optGiftHighlight = document.getElementById("opt-gift-highlight");
+    const optPinThreshold = document.getElementById("opt-pin-threshold");
 
     // Initialize Settings UI values
     if (optWindow) {
@@ -1140,15 +1408,9 @@ const html = `<!DOCTYPE html>
         trimLogs();
       });
     }
-    if (optMinLevel) {
-      optMinLevel.addEventListener("input", () => {
-        if (minLevelVal) minLevelVal.textContent = optMinLevel.value + "级";
-      });
-    }
-    if (optOpacity) {
-      optOpacity.addEventListener("input", () => {
-        if (opacityVal) opacityVal.textContent = optOpacity.value + "%";
-        updateOpacity();
+    if (optThemeLight) {
+      optThemeLight.addEventListener("change", () => {
+        updateTheme();
       });
     }
     if (optTts) {
@@ -1188,21 +1450,63 @@ const html = `<!DOCTYPE html>
       });
     }
 
-    if (scrollToggleBtn) {
-      scrollToggleBtn.addEventListener("click", () => {
-        if (autoScroll) {
-          autoScroll = false;
-          scrollToggleBtn.textContent = "恢复滚动";
-          scrollToggleBtn.style.background = "rgba(99, 102, 241, 0.15)";
-          scrollToggleBtn.style.color = "var(--accent)";
+    // Gift scroll auto-scroll handler & scroll lock
+    let lastGiftScrollTop = giftLog ? giftLog.scrollTop : 0;
+    if (giftLog) {
+      giftLog.addEventListener("scroll", () => {
+        const currentScrollTop = giftLog.scrollTop;
+        const threshold = 50;
+        const isAtBottom = giftLog.scrollHeight - currentScrollTop - giftLog.clientHeight <= threshold;
+        if (isAtBottom) {
+          giftAutoScroll = true;
+          const alertEl = document.getElementById("gift-scroll-lock-alert");
+          if (alertEl) alertEl.classList.remove("active");
         } else {
-          scrollToBottom(true);
-          scrollToggleBtn.textContent = "暂停滚动";
-          scrollToggleBtn.style.background = "rgba(255,255,255,0.06)";
-          scrollToggleBtn.style.color = "var(--text-muted)";
+          if (currentScrollTop < lastGiftScrollTop) {
+            giftAutoScroll = false;
+          }
         }
+        lastGiftScrollTop = currentScrollTop;
       });
     }
+    const giftScrollLockAlert = document.getElementById("gift-scroll-lock-alert");
+    if (giftScrollLockAlert) {
+      giftScrollLockAlert.addEventListener("click", () => {
+        if (giftLog) giftLog.scrollTop = giftLog.scrollHeight;
+        giftAutoScroll = true;
+        giftScrollLockAlert.classList.remove("active");
+      });
+    }
+
+    // Entry scroll auto-scroll handler & scroll lock
+    let lastEntryScrollTop = entryLog ? entryLog.scrollTop : 0;
+    if (entryLog) {
+      entryLog.addEventListener("scroll", () => {
+        const currentScrollTop = entryLog.scrollTop;
+        const threshold = 50;
+        const isAtBottom = entryLog.scrollHeight - currentScrollTop - entryLog.clientHeight <= threshold;
+        if (isAtBottom) {
+          entryAutoScroll = true;
+          const alertEl = document.getElementById("entry-scroll-lock-alert");
+          if (alertEl) alertEl.classList.remove("active");
+        } else {
+          if (currentScrollTop < lastEntryScrollTop) {
+            entryAutoScroll = false;
+          }
+        }
+        lastEntryScrollTop = currentScrollTop;
+      });
+    }
+    const entryScrollLockAlert = document.getElementById("entry-scroll-lock-alert");
+    if (entryScrollLockAlert) {
+      entryScrollLockAlert.addEventListener("click", () => {
+        if (entryLog) entryLog.scrollTop = entryLog.scrollHeight;
+        entryAutoScroll = true;
+        entryScrollLockAlert.classList.remove("active");
+      });
+    }
+
+
 
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
@@ -1226,21 +1530,38 @@ const html = `<!DOCTYPE html>
         window: optWindow ? optWindow.value : "10",
         filterRobot: optFilterRobot ? optFilterRobot.checked : true,
         tts: optTts ? optTts.checked : false,
-        opacity: optOpacity ? optOpacity.value : "100",
-        fontSize: optFontSize ? optFontSize.value : "14",
-        maxLines: optMaxLines ? optMaxLines.value : "300",
+        fontSize: optFontSize ? optFontSize.value : "18",
+        maxLines: optMaxLines ? optMaxLines.value : "100",
         blockKeywords: optBlockKeywords ? optBlockKeywords.value : "",
-        blockRegex: optBlockRegex ? optBlockRegex.value : "",
+        blockGifts: optBlockGifts ? optBlockGifts.value : "",
         blockUsers: optBlockUsers ? optBlockUsers.value : "",
         minLevel: optMinLevel ? optMinLevel.value : "1",
-        blockNobadge: optBlockNobadge ? optBlockNobadge.checked : false
+        blockNobadge: optBlockNobadge ? optBlockNobadge.checked : false,
+        giftHighlight: optGiftHighlight ? optGiftHighlight.value : "10",
+        pinThreshold: optPinThreshold ? optPinThreshold.value : "10",
+        pinMaxCount: optPinMaxCount ? optPinMaxCount.value : "3",
+        themeLight: optThemeLight ? optThemeLight.checked : false
       };
       localStorage.setItem("DouyuAssistant_Settings", JSON.stringify(settings));
     }
 
     function loadSettings() {
       const saved = localStorage.getItem("DouyuAssistant_Settings");
-      if (!saved) return;
+      if (!saved) {
+        // Explicitly load new defaults if no settings exist yet
+        if (optFontSize) {
+          optFontSize.value = "18";
+          if (fontSizeVal) fontSizeVal.textContent = "18px";
+        }
+        if (optMaxLines) {
+          optMaxLines.value = "100";
+          if (maxLinesVal) maxLinesVal.textContent = "100行";
+        }
+        if (optPinMaxCount) {
+          optPinMaxCount.value = "3";
+        }
+        return;
+      }
       try {
         const settings = JSON.parse(saved);
         if (settings.showChat !== undefined && optShowChat) optShowChat.checked = settings.showChat;
@@ -1253,10 +1574,6 @@ const html = `<!DOCTYPE html>
         }
         if (settings.filterRobot !== undefined && optFilterRobot) optFilterRobot.checked = settings.filterRobot;
         if (settings.tts !== undefined && optTts) optTts.checked = settings.tts;
-        if (settings.opacity !== undefined && optOpacity) {
-          optOpacity.value = settings.opacity;
-          if (opacityVal) opacityVal.textContent = settings.opacity + "%";
-        }
         if (settings.fontSize !== undefined && optFontSize) {
           optFontSize.value = settings.fontSize;
           if (fontSizeVal) fontSizeVal.textContent = settings.fontSize + "px";
@@ -1266,28 +1583,47 @@ const html = `<!DOCTYPE html>
           if (maxLinesVal) maxLinesVal.textContent = settings.maxLines + "行";
         }
         if (settings.blockKeywords !== undefined && optBlockKeywords) optBlockKeywords.value = settings.blockKeywords;
-        if (settings.blockRegex !== undefined && optBlockRegex) optBlockRegex.value = settings.blockRegex;
+        if (settings.blockGifts !== undefined && optBlockGifts) optBlockGifts.value = settings.blockGifts;
         if (settings.blockUsers !== undefined && optBlockUsers) optBlockUsers.value = settings.blockUsers;
         if (settings.minLevel !== undefined && optMinLevel) {
           optMinLevel.value = settings.minLevel;
           if (minLevelVal) minLevelVal.textContent = settings.minLevel + "级";
         }
         if (settings.blockNobadge !== undefined && optBlockNobadge) optBlockNobadge.checked = settings.blockNobadge;
+        if (settings.giftHighlight !== undefined && optGiftHighlight) optGiftHighlight.value = settings.giftHighlight;
+        if (settings.pinThreshold !== undefined && optPinThreshold) optPinThreshold.value = settings.pinThreshold;
+        if (settings.pinMaxCount !== undefined && optPinMaxCount) optPinMaxCount.value = settings.pinMaxCount;
+        if (settings.themeLight !== undefined && optThemeLight) optThemeLight.checked = settings.themeLight;
       } catch (e) {
         console.error("Failed to load settings:", e);
+      }
+    }
+
+    if (optMinLevel) {
+      optMinLevel.addEventListener("input", () => {
+        if (minLevelVal) minLevelVal.textContent = optMinLevel.value + "级";
+      });
+    }
+
+    function updateTheme() {
+      if (optThemeLight && optThemeLight.checked) {
+        document.body.classList.add("theme-light");
+      } else {
+        document.body.classList.remove("theme-light");
       }
     }
 
     // Auto-save listeners for all inputs
     const allInputsToSave = [
       optShowChat, optShowGifts, optShowEntry, optMerge, optWindow,
-      optFilterRobot, optTts, optOpacity, optFontSize, optMaxLines,
-      optBlockKeywords, optBlockRegex, optBlockUsers, optMinLevel, optBlockNobadge
+      optFilterRobot, optTts, optFontSize, optMaxLines,
+      optBlockKeywords, optBlockGifts, optBlockUsers, optMinLevel, optBlockNobadge,
+      optGiftHighlight, optPinThreshold, optPinMaxCount, optThemeLight
     ];
     allInputsToSave.forEach(input => {
       if (input) {
         input.addEventListener("change", saveSettings);
-        if (input.type === "range" || input.tagName === "TEXTAREA") {
+        if (input.type === "range" || input.tagName === "TEXTAREA" || input.type === "number") {
           input.addEventListener("input", saveSettings);
         }
       }
@@ -1300,7 +1636,7 @@ const html = `<!DOCTYPE html>
       if (pinnedContainer && optFontSize) pinnedContainer.style.fontSize = optFontSize.value + "px";
       if (giftLog && optFontSize) giftLog.style.fontSize = optFontSize.value + "px";
       if (entryLog && optFontSize) entryLog.style.fontSize = optFontSize.value + "px";
-      updateOpacity();
+      updateTheme();
       fetchGiftConfig();
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -1391,6 +1727,34 @@ const html = `<!DOCTYPE html>
       statusText.textContent = msg;
     }
 
+    let roomInfoTimer = null;
+
+    async function updateRoomInfo(rid) {
+      if (!rid || rid !== activeRoom) return;
+      try {
+        const res = await fetch(\`/api/room-info?room=\${rid}\`);
+        const data = await res.json();
+        if (data && data.error === 0 && data.data) {
+          const online = data.data.online || data.data.hn || 0;
+          if (onlineCount) {
+            onlineCount.textContent = online;
+            onlineCount.style.display = "inline-block";
+          }
+          if (data.data.gift) {
+            data.data.gift.forEach(g => {
+              giftConfig[g.id] = {
+                name: g.name,
+                bimg: g.himg || g.mimg || "",
+                price: g.pc ? parseFloat(g.pc) : 0
+              };
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Failed to update room info:", e);
+      }
+    }
+
     function connectToRoom(rid) {
       activeRoom = rid;
       const port = Math.floor(Math.random() * 4) + 8502; // wss://danmuproxy.douyu.com:8502-8505
@@ -1398,6 +1762,12 @@ const html = `<!DOCTYPE html>
       
       updateStatus("connecting", "正在连接...");
       addSystemLog(\`正在建立连接至 \${url}...\`);
+
+      if (roomInfoTimer) clearInterval(roomInfoTimer);
+      updateRoomInfo(rid);
+      roomInfoTimer = setInterval(() => {
+        updateRoomInfo(rid);
+      }, 30000);
 
       try {
         socket = new WebSocket(url);
@@ -1453,6 +1823,14 @@ const html = `<!DOCTYPE html>
         };
 
         socket.onclose = () => {
+          if (roomInfoTimer) {
+            clearInterval(roomInfoTimer);
+            roomInfoTimer = null;
+          }
+          if (onlineCount) {
+            onlineCount.style.display = "none";
+            onlineCount.textContent = "";
+          }
           updateStatus("disconnected", "连接断开");
           if (roomInfo) roomInfo.textContent = "";
           addSystemLog("连接已关闭。");
@@ -1461,6 +1839,14 @@ const html = `<!DOCTYPE html>
 
       } catch (err) {
         console.error(err);
+        if (roomInfoTimer) {
+          clearInterval(roomInfoTimer);
+          roomInfoTimer = null;
+        }
+        if (onlineCount) {
+          onlineCount.style.display = "none";
+          onlineCount.textContent = "";
+        }
         updateStatus("disconnected", "连接失败");
         addSystemLog(\`连接失败: \${err.message}\`);
         cleanup();
@@ -1479,6 +1865,14 @@ const html = `<!DOCTYPE html>
         }
         socket = null;
       }
+      if (roomInfoTimer) {
+        clearInterval(roomInfoTimer);
+        roomInfoTimer = null;
+      }
+      if (onlineCount) {
+        onlineCount.style.display = "none";
+        onlineCount.textContent = "";
+      }
       updateStatus("disconnected", "连接断开");
       if (roomInfo) roomInfo.textContent = "";
       addSystemLog("连接已关闭。");
@@ -1491,16 +1885,26 @@ const html = `<!DOCTYPE html>
         clearInterval(keepAliveTimer);
         keepAliveTimer = null;
       }
+      if (roomInfoTimer) {
+        clearInterval(roomInfoTimer);
+        roomInfoTimer = null;
+      }
+      if (onlineCount) {
+        onlineCount.style.display = "none";
+        onlineCount.textContent = "";
+      }
       activeRoom = "";
       activeDanmakus.clear();
       activeGifts.clear();
-      connectBtn.innerHTML = \`
-        <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
-          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-        </svg>
-        <span>连接并查看弹幕</span>
-      \`;
-      connectBtn.classList.remove("btn-disconnect");
+      if (connectBtn) {
+        connectBtn.innerHTML = \`
+          <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
+            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+          </svg>
+          <span>连接并查看弹幕</span>
+        \`;
+        connectBtn.classList.remove("btn-disconnect");
+      }
     }
 
     // String repeat collapsing normalizer
@@ -1508,22 +1912,77 @@ const html = `<!DOCTYPE html>
       return str.trim().toLowerCase().replace(/\\s+/g, '').replace(/(.)\\1+/gu, '$1');
     }
 
-    // Background opacity updater
-    function updateOpacity() {
-      const opacity = optOpacity.value / 100;
-      if (opacity === 1) {
-        document.body.style.background = 'var(--bg-gradient)';
-        const blobs = document.querySelector('.bg-blobs');
-        if (blobs) blobs.style.opacity = '1';
-      } else {
-        document.body.style.background = 'rgba(15, 23, 42, ' + opacity + ')';
-        const blobs = document.querySelector('.bg-blobs');
-        if (blobs) blobs.style.opacity = opacity.toString();
-      }
-      
-      document.querySelectorAll('.sidebar, .column-panel').forEach(el => {
-        el.style.background = 'rgba(30, 41, 59, ' + (opacity * 0.7) + ')';
+    // Toggle dropdowns and modal helper functions
+    function setupDropdownToggle(btnId, dropdownId) {
+      const btn = document.getElementById(btnId);
+      const dropdown = document.getElementById(dropdownId);
+      if (!btn || !dropdown) return;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll(".header-dropdown").forEach(d => {
+          if (d !== dropdown) d.style.display = "none";
+        });
+        const isShown = dropdown.style.display === "block";
+        dropdown.style.display = isShown ? "none" : "block";
       });
+    }
+
+    setupDropdownToggle("danmu-settings-btn", "danmu-settings-dropdown");
+    setupDropdownToggle("danmu-filter-btn", "danmu-filter-dropdown");
+    setupDropdownToggle("gift-filter-btn", "gift-filter-dropdown");
+
+    // Close dropdowns when clicking outside
+    window.addEventListener("click", (e) => {
+      document.querySelectorAll(".header-dropdown").forEach(d => {
+        if (!d.contains(e.target)) {
+          d.style.display = "none";
+        }
+      });
+    });
+
+    // Foreground Combo Details Modal Logic
+    const comboModal = document.getElementById("combo-modal");
+    const closeComboBtn = document.getElementById("close-combo-modal");
+    if (closeComboBtn) {
+      closeComboBtn.addEventListener("click", () => {
+        if (comboModal) comboModal.classList.remove("active");
+      });
+    }
+    if (comboModal) {
+      comboModal.addEventListener("click", (e) => {
+        if (e.target === comboModal) {
+          comboModal.classList.remove("active");
+        }
+      });
+    }
+
+    function showComboModal(text, details, count) {
+      const modal = document.getElementById("combo-modal");
+      const modalBody = document.getElementById("combo-modal-body");
+      const modalTitle = modal.querySelector(".modal-title");
+      if (!modal || !modalBody) return;
+
+      modalTitle.textContent = \`"\${text}" 连击详情 (共 \${count} 次)\`;
+      modalBody.innerHTML = "";
+      
+      details.forEach(det => {
+        modalBody.appendChild(createSubItem(det));
+      });
+
+      modal.classList.add("active");
+    }
+
+    // Format Noble count (贵宾数)
+    function formatNobleCount(vn) {
+      const n = Number(vn);
+      if (isNaN(n)) return vn;
+      if (n >= 10000) {
+        const wan = n / 10000;
+        if (Number.isInteger(wan)) return wan + "万";
+        return parseFloat(wan.toFixed(1)) + "万";
+      }
+      return String(n);
     }
 
     // TTS speaker with queue control
@@ -1681,6 +2140,14 @@ const html = `<!DOCTYPE html>
       const now = Date.now();
       const timeWindow = parseInt(optWindow.value);
 
+      // Gift blocking filter
+      if (optBlockGifts && optBlockGifts.value.trim()) {
+        const giftBlockedList = optBlockGifts.value.split(/[\\n,，]/).map(g => g.trim().toLowerCase()).filter(Boolean);
+        if (giftBlockedList.includes(giftName.toLowerCase())) {
+          return;
+        }
+      }
+
       // Check if merge is enabled and we have a recent duplicate gift for the same user
       const giftKey = nickname + '_' + gfid;
       if (optMerge.checked) {
@@ -1696,17 +2163,27 @@ const html = `<!DOCTYPE html>
           }
           existing.timestamp = now;
           existing.contentSpan.textContent = '送出了 ' + existing.count + ' 个 ' + giftName;
-          if (giftInfo.bimg) {
-            const giftImg = document.createElement('img');
-            giftImg.src = giftInfo.bimg;
-            giftImg.className = 'gift-icon';
-            existing.contentSpan.appendChild(giftImg);
+
+          // Re-evaluate highlighting upon merging
+          const highlightThreshold = parseFloat(optGiftHighlight ? optGiftHighlight.value : "10");
+          const totalValue = (giftInfo.price || 0) * existing.count;
+          if (totalValue >= highlightThreshold && highlightThreshold >= 0) {
+            existing.element.classList.add("gift-highlight");
+          } else {
+            existing.element.classList.remove("gift-highlight");
           }
 
           // Trigger bump animation
           existing.element.classList.remove("bump");
           void existing.element.offsetWidth;
           existing.element.classList.add("bump");
+          
+          if (giftAutoScroll) {
+            giftLog.scrollTop = giftLog.scrollHeight;
+          } else {
+            const alertEl = document.getElementById("gift-scroll-lock-alert");
+            if (alertEl) alertEl.classList.add("active");
+          }
           
           if (optTts.checked) {
             speakMessage(nickname + '送出了' + existing.count + '个' + giftName);
@@ -1733,13 +2210,14 @@ const html = `<!DOCTYPE html>
       const contentSpan = document.createElement('span');
       contentSpan.className = 'dm-gift';
       contentSpan.textContent = '送出了 ' + countVal + ' 个 ' + giftName;
-      if (giftInfo.bimg) {
-        const giftImg = document.createElement('img');
-        giftImg.src = giftInfo.bimg;
-        giftImg.className = 'gift-icon';
-        contentSpan.appendChild(giftImg);
-      }
       el.appendChild(contentSpan);
+
+      // Evaluate highlighting
+      const highlightThreshold = parseFloat(optGiftHighlight ? optGiftHighlight.value : "10");
+      const totalValue = (giftInfo.price || 0) * countVal;
+      if (totalValue >= highlightThreshold && highlightThreshold >= 0) {
+        el.classList.add("gift-highlight");
+      }
 
       giftLog.appendChild(el);
 
@@ -1766,7 +2244,12 @@ const html = `<!DOCTYPE html>
         oldest.remove();
       }
 
-      giftLog.scrollTop = giftLog.scrollHeight;
+      if (giftAutoScroll) {
+        giftLog.scrollTop = giftLog.scrollHeight;
+      } else {
+        const alertEl = document.getElementById("gift-scroll-lock-alert");
+        if (alertEl) alertEl.classList.add("active");
+      }
 
       if (optTts.checked) {
         speakMessage(nickname + '送出了' + countVal + '个' + giftName);
@@ -1804,7 +2287,12 @@ const html = `<!DOCTYPE html>
         giftLog.firstElementChild.remove();
       }
       
-      giftLog.scrollTop = giftLog.scrollHeight;
+      if (giftAutoScroll) {
+        giftLog.scrollTop = giftLog.scrollHeight;
+      } else {
+        const alertEl = document.getElementById("gift-scroll-lock-alert");
+        if (alertEl) alertEl.classList.add("active");
+      }
       
       if (optTts.checked) {
         speakMessage('感谢' + nickname + action);
@@ -1864,7 +2352,12 @@ const html = `<!DOCTYPE html>
         entryLog.firstElementChild.remove();
       }
       
-      entryLog.scrollTop = entryLog.scrollHeight;
+      if (entryAutoScroll) {
+        entryLog.scrollTop = entryLog.scrollHeight;
+      } else {
+        const alertEl = document.getElementById("entry-scroll-lock-alert");
+        if (alertEl) alertEl.classList.add("active");
+      }
     }
 
     // Danmaku Parsing and Rendering
@@ -1887,6 +2380,15 @@ const html = `<!DOCTYPE html>
       } else if (msg.type === "uenter") {
         if (optShowEntry.checked) {
           renderEntry(msg);
+        }
+      } else if (msg.type === "oni") {
+        const vn = msg.vn;
+        if (vn) {
+          const nobleCount = document.getElementById("noble-count");
+          if (nobleCount) {
+            nobleCount.textContent = "贵宾: " + formatNobleCount(vn);
+            nobleCount.style.display = "inline-block";
+          }
         }
       }
     }
@@ -1940,24 +2442,6 @@ const html = `<!DOCTYPE html>
           const hasKeyword = kwList.some(kw => lowerText.includes(kw.toLowerCase()));
           if (hasKeyword) {
             return;
-          }
-        }
-      }
-
-      // 4. 正则表达式过滤
-      if (optBlockRegex) {
-        const regexStr = optBlockRegex.value.trim();
-        if (regexStr) {
-          const regexLines = regexStr.split(String.fromCharCode(10)).map(r => r.trim()).filter(Boolean);
-          for (const line of regexLines) {
-            try {
-              const rx = new RegExp(line);
-              if (rx.test(text)) {
-                return;
-              }
-            } catch (e) {
-              // 忽略非法正则规则
-            }
           }
         }
       }
@@ -2017,25 +2501,12 @@ const html = `<!DOCTYPE html>
               element.appendChild(multiplierSpan);
               existing.countBadge = multiplierSpan;
 
-              const sublist = document.createElement("div");
-              sublist.className = "danmaku-sublist";
-              element.appendChild(sublist);
-
               element.addEventListener("click", (e) => {
-                if (e.target.closest('.danmaku-sublist')) {
+                if (e.target.closest('.dm-username')) {
                   return;
                 }
-                const isActive = sublist.classList.toggle("active");
-                if (isActive) {
-                  // Dynamically render details to avoid heavy DOM tree
-                  sublist.innerHTML = "";
-                  existing.details.forEach(det => {
-                    sublist.appendChild(createSubItem(det));
-                  });
-                } else {
-                  // Collapse and free DOM nodes
-                  sublist.innerHTML = "";
-                }
+                e.stopPropagation();
+                showComboModal(text, existing.details, existing.count);
               });
 
               updateHeatLevel(element, multiplierSpan, 2);
@@ -2051,24 +2522,21 @@ const html = `<!DOCTYPE html>
                 void existing.countBadge.offsetWidth;
                 existing.countBadge.classList.add("pop-active");
               }
-
-              const sublist = element.querySelector(".danmaku-sublist");
-              if (sublist && sublist.classList.contains("active")) {
-                sublist.appendChild(createSubItem(currentDetail));
-              }
             }
 
             // Position Control & Scroll Lock Check
             if (autoScroll) {
-              if (existing.count >= 10) {
+              const pinThreshold = parseInt(optPinThreshold ? optPinThreshold.value : "10");
+              if (existing.count >= pinThreshold) {
                 existing.pinned = true;
                 existing.pinTimestamp = now;
                 if (!pinnedContainer.contains(element)) {
                   element.remove();
                   pinnedContainer.appendChild(element);
 
-                  // Safety cap: keep at most 3 pinned combos to prevent taking over the screen
-                  while (pinnedContainer.childElementCount > 3) {
+                  // Safety cap: keep at most opt-pin-max-count pinned combos
+                  const maxPinned = parseInt(optPinMaxCount ? optPinMaxCount.value : "5") || 3;
+                  while (pinnedContainer.childElementCount > maxPinned) {
                     const oldestPinned = pinnedContainer.firstElementChild;
                     const oldestKey = oldestPinned.dataset.key;
                     if (oldestKey) {
@@ -2080,15 +2548,6 @@ const html = `<!DOCTYPE html>
                     oldestPinned.remove();
                     chatLog.appendChild(oldestPinned);
                   }
-                } else {
-                  // Already pinned: move to bottom of pinned container
-                  pinnedContainer.appendChild(element);
-                }
-              } else {
-                // Bring to Bottom: always sink to the bottom of main log if autoScroll is enabled
-                if (!chatLog.contains(element) || element !== chatLog.lastElementChild) {
-                  element.remove();
-                  chatLog.appendChild(element);
                 }
               }
 
