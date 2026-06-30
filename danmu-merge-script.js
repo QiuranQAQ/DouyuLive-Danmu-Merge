@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         斗鱼弹幕合并1.0 by超限
 // @namespace    http://tampermonkey.net/
-// @version      1.00
-// @description  合并斗鱼网页端重复弹幕并置底。连击数一键跟风发送，黑夜白天自适应，置底自适应且不产生多余空边，强力屏蔽进场通知，修复详情重叠问题。
+// @version      1.01
+// @description  合并斗鱼网页端重复弹幕并置底。连击数一键跟风发送，黑夜白天自适应，置底自适应且不产生多余空边，强力屏蔽进场通知，修复详情重叠问题。悬浮设置按钮支持侧边贴墙隐藏。
 // @author       超限 (Modified by Assistant)
 // @match        *://*.douyu.com/0*
 // @match        *://*.douyu.com/1*
@@ -200,28 +200,34 @@
             align-items: center;
         }
 
-        /* ======= 6. 悬浮设置面板 (白天模式) ======= */
+        /* ======= 6. 悬浮设置面板 (带边缘探头悬停滑出动画) ======= */
         #douyu-helper-settings-btn {
             position: fixed;
-            right: 5px;
+            right: 0;                  /* 紧贴屏幕最右侧 */
             bottom: 130px;
             width: 41.8px;
             height: 41.8px;
             background: #2cafff;
             color: white;
-            border-radius: 10%;
+            border-radius: 8px 0 0 8px; /* 仅圆角化面向屏幕内部的左侧，靠墙侧保持直角 */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 10000;
-            box-shadow: 0 4px 10px rgba(0,170,255,0.45);
+            box-shadow: -2px 4px 10px rgba(0,170,255,0.35);
             font-size: 18px;
             user-select: none;
-            transition: transform 0.2s ease;
+
+            /* 隐藏效果：不激活时向右平移 32px 隐藏，降低不透明度，仅保留大约 10px 的窄边缘供鼠标触碰 */
+            opacity: 0.35;
+            transform: translateX(32px);
+            transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease;
         }
+
         #douyu-helper-settings-btn:hover {
-            transform: scale(1.1) rotate(30deg);
+            opacity: 1;
+            transform: translateX(0); /* 鼠标悬停时平滑滑出显现 */
         }
 
         #douyu-helper-settings-panel {
