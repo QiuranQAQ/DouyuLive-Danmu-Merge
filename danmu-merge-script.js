@@ -64,7 +64,7 @@
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.98);
-            border-top: 1.5px solid rgba(255, 117, 0, 0.8);
+            border-top: 1.5px solid rgba(255, 119, 0, 0.88);
             z-index: 999;
             display: flex;
             flex-direction: column;
@@ -203,19 +203,19 @@
         /* ======= 6. 悬浮设置面板 (白天模式) ======= */
         #douyu-helper-settings-btn {
             position: fixed;
-            right: 20px;
-            bottom: 120px;
-            width: 36px;
-            height: 36px;
-            background: #ff7500;
+            right: 5px;
+            bottom: 130px;
+            width: 41.8px;
+            height: 41.8px;
+            background: #2cafff;
             color: white;
-            border-radius: 50%;
+            border-radius: 10%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 10000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0,170,255,0.45);
             font-size: 18px;
             user-select: none;
             transition: transform 0.2s ease;
@@ -909,14 +909,14 @@
 
         const btn = document.createElement('div');
         btn.id = 'douyu-helper-settings-btn';
-        btn.textContent = '⚙️';
+        btn.textContent = '合';
         btn.title = '弹幕合并置底助手配置';
         document.body.appendChild(btn);
 
         const panel = document.createElement('div');
         panel.id = 'douyu-helper-settings-panel';
         panel.innerHTML = `
-            <div style="font-weight: bold; font-size: 14px; color: #ff7500; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 4px;">⚙️ 弹幕合并置底选项</div>
+            <div style="font-weight: bold; font-size: 14px; color: #2cafff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 4px;">⚙️ 弹幕合并置底选项</div>
 
             <div class="settings-row">
                 <label>开启弹幕合并</label>
@@ -938,7 +938,7 @@
                 <input type="number" id="set-pin-max-count" class="settings-input" min="1" max="10" value="${settings.pinMaxCount}">
             </div>
 
-            <button id="set-save-btn" style="background: #ff7500; border: none; color: white; border-radius: 6px; padding: 6px; font-weight: bold; cursor: pointer; margin-top: 4px;">保存设置</button>
+            <button id="set-save-btn" style="background: #2cafff; border: none; color: white; border-radius: 6px; padding: 6px; font-weight: bold; cursor: pointer; margin-top: 4px;">保存设置</button>
         `;
         document.body.appendChild(panel);
 
