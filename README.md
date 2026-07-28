@@ -18,9 +18,9 @@ https://danmu-d8y.pages.dev/
 
 ## 🖼️ 预览截图
 
-![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_1.png))
-![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_2.png))
-![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_3.png))
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/master/ScreenShot_1.png))
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/maaster/ScreenShot_2.png))
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/maaster/ScreenShot_3.png))
 
 ## ✨ 核心特性
 
