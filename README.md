@@ -12,6 +12,16 @@
 
 ---
 
+## 🔗 预览地址 
+
+https://danmu-d8y.pages.dev/
+
+## 🖼️ 预览截图
+
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_1.png))
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_2.png))
+![GitHub图像]((https://raw.githubusercontent.com/QiuranQAQ/DouyuLive-Danmu-Merge/main/ScreenShot_3.png))
+
 ## ✨ 核心特性
 
 - ⚡ **零中转直连**：浏览器端直接通过 WebSocket 建立与斗鱼弹幕服务器（`wss://danmuproxy.douyu.com`）的物理连接，Cloudflare Worker 仅负责分发前端静态页面，安全、快速且不占用 Worker 额度或服务器带宽。
