@@ -6,6 +6,7 @@
 [![OBS Overlay](https://img.shields.io/badge/OBS-Overlay%20Friendly-050B14?style=for-the-badge&logo=obs-studio&logoColor=white)](#obs-串流看板使用指南)
 
 基于原生 JavaScript 与 WebSocket 直连技术实现的**斗鱼直播弹幕在线助手**。该版本专为 Cloudflare Workers 设计，采用**单文件部署**方式，无需复杂的服务器配置，一键即可拥有专属的弹幕监控网页与 OBS 串流看板。
+100% free and open-source for the community。
 
 > [!NOTE]
 > 本项目由 `DouyuEx` 弹幕引擎驱动，由超限魔改优化。前端采用现代玻璃拟态（Glassmorphism）暗黑风设计，配合优雅的霓虹背景斑块及平滑过渡动画，给您极致的视觉与操作体验。
